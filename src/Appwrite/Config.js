@@ -1,8 +1,8 @@
-import conf from "../conf.js";
-import { client, ID, databases, Storage, Query } from "appwrite";
+import conf from "../conf/conf";
+import { Client, ID, Databases, Storage, Query } from "appwrite";
 
 export class Service {
-  client = new client(conf);
+  client = new Client();
   ID;
   databases;
   bucket;
@@ -11,37 +11,37 @@ export class Service {
     this.client
       .setEndpoint(conf.appwriteUrl)
       .setProject(conf.appwriteProjectId);
-    this.databases = this.client.databases(this.client);
-    this.bucket = this.client.storage(this.client);
+    this.databases = new Databases(this.client);
+    this.bucket = new Storage(this.client);
   }
 
-  async createPost({ title, slug, content, status, featuredImage, user_id }) {
+  async createPost({ title, slug, content, status, featuredImage, userId }) {
     try {
       return await this.databases.createDocument(
-        conf.appwriteProjectId,
+        conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
-        slug,
+        ID.unique(),
         {
           title,
-
+          slug,
           content,
-
           status,
           featuredImage,
-          user_id,
+          userId,
         }
       );
     } catch (error) {
-      console.error(error);
+      console.log("createPost error", error);
+      return null;
     }
   }
 
-  async UpdatePost(slug, { title, content, status, featuredImage }) {
+  async UpdatePost(postId, { title, content, status, featuredImage }) {
     try {
       return await this.databases.updateDocument(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
-        slug,
+        postId,
         {
           title,
           content,
@@ -50,11 +50,12 @@ export class Service {
         }
       );
     } catch (error) {
-      console.error("UpdatePosterror", error);
+      console.log("UpdatePost error", error);
+      return null;
     }
   }
 
-  async deletePost({ slug }) {
+  async deletePost(slug) {
     try {
       await this.databases.deleteDocument(
         conf.appwriteDatabaseId,
@@ -63,22 +64,22 @@ export class Service {
       );
       return true;
     } catch (error) {
-      console.error("deletePosterror", error);
+      console.log("deletePost error", error);
       return false;
     }
   }
 
-  async getPostBySlug(slug) {
+  async getPost(slug) {
     try {
-      await this.databases.getDocument(
+      const post = await this.databases.getDocument(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
         slug
       );
-      return true;
+      return post;
     } catch (error) {
-      console.error("getPostBySlugerror", error);
-      return false;
+      console.log("getPost error", error);
+      return null;
     }
   }
   async getPosts(Queries = [Query.equal("status", "active")]) {
@@ -92,7 +93,7 @@ export class Service {
       );
       return posts;
     } catch (error) {
-      console.error("getPostserror", error);
+      console.log("getPosts error", error);
       return [];
     }
   }
@@ -102,34 +103,36 @@ export class Service {
     try {
       const fileUpload = await this.bucket.createFile(
         conf.appwriteBucketId,
-
         ID.unique(),
         file
       );
       return fileUpload;
     } catch (error) {
-      console.error("uploadFileerror", error);
-      return false;
+      console.log("uploadFile error", error);
+      return null;
     }
   }
 
   async deleteFile(fileId) {
     try {
-      await this.bucket.deleteFile(
-        conf.appwriteBucketId, fileId
-    );
+      await this.bucket.deleteFile(conf.appwriteBucketId, fileId);
       return true;
     } catch (error) {
-      console.error("deleteFileerror", error);
+      console.log("deleteFile error", error);
       return false;
     }
   }
 
-   async previewFile (fileId) {
-   await this.bucket.getFilePreview(conf.appwriteBucketId, fileId);
-        return fileId;
+  async getFilePreview(fileId) {
+    try {
+      const preview = await this.bucket.getFilePreview(conf.appwriteBucketId, fileId);
+      return preview;
+    } catch (error) {
+      console.log("getFilePreview error", error);
+      return null;
     }
+  }
 }
 const service = new Service();
 
-export default Service;
+export default service;

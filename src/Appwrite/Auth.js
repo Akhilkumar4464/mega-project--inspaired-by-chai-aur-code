@@ -24,42 +24,43 @@ export class authService {
 
       if (useraccount) {
         // console.log(useraccount);
-        return this.login({ email, password });
+        return this.login(email, password);
       } else {
         return null;
       }
     } catch (error) {
-      console.error( "create account error" , error);
+      console.log("create account error", error);
+      return null;
     }
   }
-
   async login(email, password) {
     try {
       return await this.account.createEmailPasswordSession(email, password);
     } catch (error) {
-      console.error( " login error", error);
+      console.log(" login error", error);
+      return null;
     }
   }
 
-   async getCurrentUser (){
+  async getCurrentUser() {
     try {
-        return await this.account.get()
-   } catch (error) {
-    console.error(" get account error ",error );
+      return await this.account.get();
+    } catch (error) {
+      console.log(" get account error ", error);
+      return null;
     }
-
-    return null;
-   
-}
+  }
 
   async logout() {
     try {
-        return await this.account.deleteSessions();
-        } catch (error) {
-            console.error( " logout error", error);
-            }
-            }
+      return await this.account.deleteSessions();
+    } catch (error) {
+      console.log(" logout error", error);
+      return null;
+    }
+  }
 }
+
 
 const AuthService = new authService();
 export default AuthService;

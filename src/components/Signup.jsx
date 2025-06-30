@@ -1,40 +1,37 @@
- import React from 'react'
- import AuthService from '../appwrite/auth'
- import { Link } from 'react-router-dom'
- import { useNavigate } from 'react-router-dom'
- import { login } from '../store/authSlice'
- import { useDispatch } from 'react-redux'
-import { Button, Input, Logo } from " ./index";
-import { useForm } from 'react-hook-form'
- 
- function Signup() {
-    const { register, handleSubmit} = useForm()
-    const [ error, setError] = React.useState(null)
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+import React from 'react';
+import AuthService from '../appwrite/auth';
+import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../store/authSlice';
+import { useDispatch } from 'react-redux';
+import { Button, Input, Logo } from "../components/index";
+import { useForm } from 'react-hook-form';
 
-     const create = async (data) =>
+function Signup() {
+    const { register, handleSubmit } = useForm();
+    const [error, setError] = React.useState(null);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-     {
-         setError("")
+    const create = async (data) => {
+        setError("");
         try {
-            const userData = await AuthService.createAccount(data)
-             if ( userData) {
-               const userData=  await AuthService.getCurrentUser( )
-                if (userData) {
-                    dispatch(login(userData))
-                    navigate('/')
-                    }
-                    }
-            } catch (error) {
-                setError(error.message)
+            const userData = await AuthService.createAccount(data);
+            if (userData) {
+                const currentUser = await AuthService.getCurrentUser();
+                if (currentUser) {
+                    dispatch(login({ userData: currentUser }));
+                    navigate('/');
                 }
-                } 
-                
-                return (
-    <div className="flex items-center justify-center">
-            <div className={`mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10`}>
-            <div className="mb-2 flex justify-center">
+            }
+        } catch (error) {
+            setError(error.message || "Something went wrong");
+        }
+    };
+
+    return (
+        <div className="flex items-center justify-center">
+            <div className="mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10">
+                <div className="mb-2 flex justify-center">
                     <span className="inline-block w-full max-w-[100px]">
                         <Logo width="100%" />
                     </span>
@@ -54,30 +51,32 @@ import { useForm } from 'react-hook-form'
                 <form onSubmit={handleSubmit(create)}>
                     <div className='space-y-5'>
                         <Input
-                        label="Full Name: "
-                        placeholder="Enter your full name"
-                        {...register("name", {
-                            required: true,
-                        })}
+                            label="Full Name: "
+                            placeholder="Enter your full name"
+                            {...register("name", {
+                                required: "Full name is required",
+                            })}
                         />
                         <Input
-                        label="Email: "
-                        placeholder="Enter your email"
-                        type="email"
-                        {...register("email", {
-                            required: true,
-                            validate: {
-                                matchPatern: (value) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                                "Email address must be a valid address",
-                            }
-                        })}
+                            label="Email: "
+                            placeholder="Enter your email"
+                            type="email"
+                            {...register("email", {
+                                required: "Email is required",
+                                validate: {
+                                    matchPattern: (value) =>
+                                        /^[\w.-]+@gmail\.com$/.test(value) ||
+                                        "Email address must end with @gmail.com",
+                                }
+                            })}
                         />
                         <Input
-                        label="Password: "
-                        type="password"
-                        placeholder="Enter your password"
-                        {...register("password", {
-                            required: true,})}
+                            label="Password: "
+                            type="password"
+                            placeholder="Enter your password"
+                            {...register("password", {
+                                required: "Password is required",
+                            })}
                         />
                         <Button type="submit" className="w-full">
                             Create Account
@@ -85,15 +84,8 @@ import { useForm } from 'react-hook-form'
                     </div>
                 </form>
             </div>
+        </div>
+    );
+}
 
-    </div>
-  )
-
-     }
-    
-
-  
-
- 
- export default Signup
- 
+export default Signup;
